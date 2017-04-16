@@ -1,4 +1,4 @@
-package com.lance.quartz.common.config;
+﻿ package com.lance.quartz.common.config;
 
 import java.io.IOException;
 import java.util.Properties;
