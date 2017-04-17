@@ -155,6 +155,7 @@ var TaskInfo = {
 				{field:'jobDescription',title:'JobDescription',width:120},
 				{field:'jobStatus',title:'JobStatus',width:50},
 				{field:'cronExpression',title:'CronExpression',width:60},
+                {field:'jobUrl',title:'jobUrl',width:60},
 				{field:'createTime',title:'CreateTime',width:70},
 				{field:'Opr',title:'Opr',width:40,formatter:function(v,r,i){
 						var val = '';

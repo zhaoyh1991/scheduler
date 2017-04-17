@@ -1,6 +1,5 @@
 package com.lance.quartz.common.job;
 
-import com.alibaba.fastjson.JSONObject;
 import com.lance.quartz.common.MyApplicationContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,10 +17,9 @@ public class MinuteJob implements Job{
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		logger.info("JobName: {}", context.getJobDetail().getKey().getName());
 		RestTemplate RestTemplate= (org.springframework.web.client.RestTemplate) MyApplicationContext.getBean("restTemplate");
-		String url="http://gc.ditu.aliyun.com/geocoding?a=苏州市";
-		String s= RestTemplate.getForEntity(url, String.class).getBody();
-		System.out.println(s);
+		String myurl=context.getJobDetail().getJobDataMap().getString("url");
+		logger.info("service url: {}",myurl );
+		String s= RestTemplate.getForEntity(myurl, String.class).getBody();
 	}
 }

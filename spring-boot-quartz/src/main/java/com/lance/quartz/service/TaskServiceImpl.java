@@ -8,19 +8,10 @@ import java.util.List;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.lance.quartz.common.exception.ServiceException;
@@ -47,13 +38,14 @@ public class TaskServiceImpl {
 						Trigger.TriggerState triggerState = scheduler.getTriggerState(trigger.getKey());
 						JobDetail jobDetail = scheduler.getJobDetail(jobKey);
 						
-						String cronExpression = "", createTime = "";
+						String cronExpression = "", createTime = "",jobUrl="";
 						
 						if (trigger instanceof CronTrigger) {
 				            CronTrigger cronTrigger = (CronTrigger) trigger;
 				            cronExpression = cronTrigger.getCronExpression();
 				            createTime = cronTrigger.getDescription();
 				        }
+						jobUrl=jobDetail.getJobDataMap().getString("url");
 						TaskInfo info = new TaskInfo();
 						info.setJobName(jobKey.getName());
 						info.setJobGroup(jobKey.getGroup());
@@ -61,6 +53,7 @@ public class TaskServiceImpl {
 						info.setJobStatus(triggerState.name());
 						info.setCronExpression(cronExpression);
 						info.setCreateTime(createTime);
+						info.setJobUrl(jobUrl);
 						list.add(info);
 					}					
 				}
@@ -83,7 +76,8 @@ public class TaskServiceImpl {
 			   jobGroup = info.getJobGroup(), 
 			   cronExpression = info.getCronExpression(),
 			   jobDescription = info.getJobDescription(),
-			   createTime = DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+			   createTime = DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+				jobUrl=info.getJobUrl();
 		try {
 			if (checkExists(jobName, jobGroup)) {
 		        logger.info("===> AddJob fail, job already exist, jobGroup:{}, jobName:{}", jobGroup, jobName);
@@ -99,6 +93,8 @@ public class TaskServiceImpl {
 		
 			Class<? extends Job> clazz = (Class<? extends Job>)Class.forName(jobName);
 			JobDetail jobDetail = JobBuilder.newJob(clazz).withIdentity(jobKey).withDescription(jobDescription).build();
+			JobDataMap JobDataMap= jobDetail.getJobDataMap();
+			JobDataMap.put("url",jobUrl);
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException | ClassNotFoundException e) {
 			throw new ServiceException("类名不存在或执行表达式错误");
@@ -115,7 +111,8 @@ public class TaskServiceImpl {
 			   jobGroup = info.getJobGroup(), 
 			   cronExpression = info.getCronExpression(),
 			   jobDescription = info.getJobDescription(),
-			   createTime = DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+			   createTime = DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+				jobUrl=info.getJobUrl();
 		try {
 			if (!checkExists(jobName, jobGroup)) {
 				throw new ServiceException(String.format("Job不存在, jobName:{%s},jobGroup:{%s}", jobName, jobGroup));
@@ -127,6 +124,7 @@ public class TaskServiceImpl {
 	        
 	        JobDetail jobDetail = scheduler.getJobDetail(jobKey);
 	        jobDetail.getJobBuilder().withDescription(jobDescription);
+	        jobDetail.getJobDataMap().put("url",jobUrl);
 	        HashSet<Trigger> triggerSet = new HashSet<>();
 	    	triggerSet.add(cronTrigger);
 	        

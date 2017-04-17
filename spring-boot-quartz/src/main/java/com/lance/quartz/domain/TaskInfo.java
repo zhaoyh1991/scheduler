@@ -24,8 +24,18 @@ public class TaskInfo implements Serializable{
 	
 	/**任务表达式*/
 	private String cronExpression;
+
+	/*任务调用的远程service的*/
+	private String jobUrl;
 	
 	private String createTime;
+
+	public String getJobUrl() {
+		return jobUrl;
+	}
+	public void setJobUrl(String jobUrl) {
+		this.jobUrl = jobUrl;
+	}
 
 	public String getJobName() {
 		return jobName;
